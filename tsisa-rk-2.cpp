@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <iomanip>
 #include <cmath>
 #include <vector>
@@ -24,6 +24,12 @@ struct Chromosome {
     double fit;
     Chromosome() : x(0), y(0), fit(0) {}
     Chromosome(double x_cord, double y_cord) : x(x_cord), y(y_cord), fit(f(x_cord, y_cord)) {}
+    Chromosome& operator = (const Chromosome& chrom) {
+        x = chrom.x;
+        y = chrom.y;
+        fit = chrom.fit;
+        return *this;
+    }
 };
 
 bool comparison_operator(const Chromosome& left, const Chromosome& right) {
@@ -60,9 +66,9 @@ void GeneticAlgorithm(const int N) {
         for (unsigned int j = 0; j < generation.size(); j++) {
             auto probability = random(0, 1);
             if (probability < probability_mutation) {
-                generation[j].x = fmod(generation[j].x * random(-5, 5), 1);
-                generation[j].y = fmod(generation[j].y * random(-5, 5), 1);
-                generation[j].fit = f(generation[j].x, generation[j].y);
+                auto x = fmod(generation[j].x * random(-5, 5), 1);
+                auto y = fmod(generation[j].y * random(-5, 5), 1);
+                generation[j] = Chromosome(x, y);
             }
         }
         std::sort(generation.begin(), generation.end(), comparison_operator);
@@ -71,8 +77,7 @@ void GeneticAlgorithm(const int N) {
         unsigned int buf;
         if (generation[0].fit != generation[1].fit) {
             buf = 1;
-        }
-        else {
+        } else {
             buf = 2;
         }
 
