@@ -24,15 +24,9 @@ struct Chromosome {
     double fit;
     Chromosome() : x(0), y(0), fit(0) {}
     Chromosome(double x_cord, double y_cord) : x(x_cord), y(y_cord), fit(f(x_cord, y_cord)) {}
-    Chromosome& operator = (const Chromosome& chrom) {
-        x = chrom.x;
-        y = chrom.y;
-        fit = chrom.fit;
-        return *this;
-    }
 };
 
-bool comparison_operator(const Chromosome& left, const Chromosome& right) {
+auto comparison_operator(const Chromosome& left, const Chromosome& right) -> bool {
     return left.fit > right.fit;
 };
 
@@ -42,13 +36,13 @@ void print_generation(const std::vector<Chromosome>& chrome, unsigned int it) {
         fit_mid += ch.fit;
     }
     fit_mid = fit_mid / 6;
-    std::cout << "N: " << std::setw(4) << std::left << it
-        << "Fit_mid: " << std::setw(11) << std::left << fit_mid
-        << "Fit_max: " << std::setw(11) << std::left << chrome[0].fit << std::endl;
+    std::cout << "N: " << std::setw(13) << std::left << it
+        << "Fit_mid: " << std::setw(13) << std::left << fit_mid
+        << "Fit_max: " << std::setw(13) << std::left << chrome[0].fit << std::endl;
     for (const auto& ch : chrome) {
-        std::cout << "x: " << std::setw(11) << std::left << ch.x
-            << "y: " << std::setw(11) << std::left << ch.y
-            << "Fit: " << std::setw(11) << std::left << ch.fit << std::endl;
+        std::cout << "x: " << std::setw(13) << std::left << ch.x
+            << "y: " << std::setw(13) << std::left << ch.y
+            << "Fit: " << std::setw(13) << std::left << ch.fit << std::endl;
     }
     cout << endl;
 }
@@ -66,32 +60,25 @@ void GeneticAlgorithm(const int N) {
         for (unsigned int j = 0; j < generation.size(); j++) {
             auto probability = random(0, 1);
             if (probability < probability_mutation) {
-                auto x = fmod(generation[j].x * random(-5, 5), 1);
-                auto y = fmod(generation[j].y * random(-5, 5), 1);
+                auto x = fmod(generation[j].x * random(-5, 5), 2);
+                auto y = fmod(generation[j].y * random(-5, 5), 2);
                 generation[j] = Chromosome(x, y);
             }
         }
-        std::sort(generation.begin(), generation.end(), comparison_operator);
+
+        std::vector<Chromosome> all_pairs;
+        for (unsigned int i = 0; i < generation.size(); i++) {
+            for (unsigned int j = 0; j < generation.size(); j++) {
+                all_pairs.emplace_back(generation[i].x, generation[j].y);
+            }
+        }
+        std::sort(all_pairs.begin(), all_pairs.end(), comparison_operator);
+
         std::vector<Chromosome> new_generation;
-        new_generation.resize(6);
-        unsigned int buf;
-        if (generation[0].fit != generation[1].fit) {
-            buf = 1;
-        } else {
-            buf = 2;
+        for (unsigned int i = 0; i < generation.size(); i++) {
+            new_generation.emplace_back(all_pairs[i]);
         }
 
-        for (unsigned int k = 0; k < new_generation.size() / 2; k++) {
-            new_generation[2 * k].x = generation[0].x;
-            new_generation[2 * k].y = generation[buf + k].y;
-            new_generation[2 * k].fit = f(new_generation[2 * k].x, new_generation[2 * k].y);
-
-            new_generation[2 * k + 1].x = generation[buf + k].x;
-            new_generation[2 * k + 1].y = generation[0].y;
-            new_generation[2 * k + 1].fit = f(new_generation[2 * k + 1].x, new_generation[2 * k + 1].y);
-        }
-
-        std::sort(new_generation.begin(), new_generation.end(), comparison_operator);
         generation = new_generation;
         print_generation(generation, i);
     }
@@ -101,6 +88,7 @@ int main() {
     setlocale(LC_ALL, "Russian");
 
     cout << "Вариант №6." << endl << endl;
+    cout << "Функция: cos(x) * cos(y)" << endl;
     cout << "Вероятность мутации 20%." << endl;
     cout << "Кол-во точек: 6." << endl;
 
